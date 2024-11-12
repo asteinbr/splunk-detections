@@ -1,0 +1,2 @@
+index="firewall" dest_port="445" src_ip="client-segment" 
+| timechart span=12h count by src_ip useother=f where count > 1337
