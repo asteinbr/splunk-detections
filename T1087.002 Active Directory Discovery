@@ -1,0 +1,5 @@
+index=win EventCode=4662 src_user!=false-pos-list
+| timechart span=1d count by src_user useother=f
+| untable _time src_user count
+| where count > 100000
+| timechart span=1d sum(count) as count by src_user useother=f
