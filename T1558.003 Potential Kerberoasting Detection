@@ -1,0 +1,6 @@
+index=windows EventCode=4769 
+ServiceName!="DOMAIN\\*" ServiceName!="*$" ServiceName!="krbtgt" IpAddress="::ffff:10.*" TargetUserName!="*$@DOMAIN.FQDN"
+| stats dc(ServiceName) AS SPN_dc count by TargetUserName
+| eval ratio=count/SPN_dc
+| sort - ratio
+| where ratio > 10
