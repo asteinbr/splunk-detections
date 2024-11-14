@@ -1,0 +1,2 @@
+(index=windows) user!=EXCLUSIONS user=DOMAINADM Computer=XYZ*TSP* (EventCode="4624") 
+| stats count by _time user host LogonType
