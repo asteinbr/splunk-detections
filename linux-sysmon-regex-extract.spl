@@ -1,4 +1,4 @@
-index=* host=* Linux-Sysmon
+index=* host=* Linux-Sysmon 
 | rex field=_raw "(?s)<EventID>(?<EventID>\d+)</EventID>"
 | rex field=_raw "(?s)<Data Name=\"Image\">(?<Image>[^<]*)</Data>"
 | rex field=_raw "(?s)<Data Name=\"CommandLine\">(?<CommandLine>[^<]*)</Data>"
@@ -18,10 +18,10 @@ index=* host=* Linux-Sysmon
 | rex field=_raw "(?s)<Data Name=\"DestinationHostname\">(?<DestinationHostname>[^<]*)</Data>"
 | rex field=_raw "(?s)<Data Name=\"DestinationPort\">(?<DestinationPort>[^<]*)</Data>"
 | rex field=_raw "(?s)<Data Name=\"TargetFilename\">(?<TargetFilename>[^<]*)</Data>"
+| rex field=_raw "(?s)<Data Name=\"State\">(?<State>[^<]*)</Data>"
+| rex field=_raw "(?s)<Data Name=\"Version\">(?<Version>[^<]*)</Data>"
+| rex field=_raw "(?s)<Data Name=\"Configuration\">(?<Configuration>[^<]*)</Data>"
+| rex field=_raw "(?s)<Data Name=\"SchemaVersion\">(?<SchemaVersion>[^<]*)</Data>"
 | eval ConnectionInfo = SourceIp . ":" . SourcePort . " (" . SourceHostname . ") -> " . DestinationIp . ":" . DestinationPort . " (" . DestinationHostname . ") via " . Protocol
-| eval combo = case(
-    isnotnull(TargetFilename) AND isnotnull(ConnectionInfo), TargetFilename . " / " . ConnectionInfo,
-    isnotnull(TargetFilename), TargetFilename,
-    isnotnull(ConnectionInfo), ConnectionInfo
-)
-| table _time EventID combo Image CommandLine ParentImage ParentCommandLine User ParentUser CurrentDirectory Company OriginalFileName ConnectionInfo RuleName | sort _time
+| strcat allrequired=f ConnectionInfo TargetFilename Configuration State " " Version " " SchemaVersion combo
+| table _time EventID host combo Image CommandLine ParentImage ParentCommandLine User ParentUser CurrentDirectory Company OriginalFileName RuleName | sort _time
