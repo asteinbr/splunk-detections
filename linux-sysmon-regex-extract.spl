@@ -1,4 +1,4 @@
-index=* host=* sysmon
+index=* host=* Linux-Sysmon
 | rex field=_raw "(?s)<EventID>(?<EventID>\d+)</EventID>"
 | rex field=_raw "(?s)<Data Name=\"Image\">(?<Image>[^<]*)</Data>"
 | rex field=_raw "(?s)<Data Name=\"CommandLine\">(?<CommandLine>[^<]*)</Data>"
@@ -17,4 +17,11 @@ index=* host=* sysmon
 | rex field=_raw "(?s)<Data Name=\"DestinationIp\">(?<DestinationIp>[^<]*)</Data>"
 | rex field=_raw "(?s)<Data Name=\"DestinationHostname\">(?<DestinationHostname>[^<]*)</Data>"
 | rex field=_raw "(?s)<Data Name=\"DestinationPort\">(?<DestinationPort>[^<]*)</Data>"
-| table EventID Image CommandLine ParentImage ParentCommandLine User ParentUser CurrentDirectory RuleName Company OriginalFileName Protocol SourceIp SourceHostname SourcePort DestinationIp DestinationHostname DestinationPort | sort _time
+| rex field=_raw "(?s)<Data Name=\"TargetFilename\">(?<TargetFilename>[^<]*)</Data>"
+| eval ConnectionInfo = SourceIp . ":" . SourcePort . " (" . SourceHostname . ") -> " . DestinationIp . ":" . DestinationPort . " (" . DestinationHostname . ") via " . Protocol
+| eval combo = case(
+    isnotnull(TargetFilename) AND isnotnull(ConnectionInfo), TargetFilename . " / " . ConnectionInfo,
+    isnotnull(TargetFilename), TargetFilename,
+    isnotnull(ConnectionInfo), ConnectionInfo
+)
+| table _time EventID combo Image CommandLine ParentImage ParentCommandLine User ParentUser CurrentDirectory Company OriginalFileName ConnectionInfo RuleName | sort _time
